@@ -1,8 +1,9 @@
 //! ------------ BUCLES / LOOP -----> instrucción que se repite si se cumple una condición
+
 // se repite el bucle mientras siga siendo true
 //ejemplos contar hasta 10
 
-    //for
+    //!for
 
         /* keyword (inicializacion; condicion; expresion) {
             instruccion
@@ -28,7 +29,7 @@
 
 
 
-    // while ---> comprueba una condición ---> si es true sigue ejecutando el código ---> mientras sea true ejecuta el código hasta que sea false
+    //! while ---> comprueba una condición ---> si es true sigue ejecutando el código ---> mientras sea true ejecuta el código hasta que sea false
 
         /* let numero = 0;
 
@@ -38,7 +39,7 @@
         } */
 
 
-    //do while ---> ejecuta la acción al menos una vez
+    //!do while ---> ejecuta la acción al menos una vez
 
     let variable = false;
 
