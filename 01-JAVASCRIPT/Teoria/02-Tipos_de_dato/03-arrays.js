@@ -262,38 +262,32 @@
                 }, "Mi coche tiene: ");
                 console.log(coche); // Mi coche tiene:  asientos, volante, puertas, ruedas, pintura metalizada,
 
-            //! 
+            //! from()
 
+                // crea un array de un dato
+                // modifica el array con la operacion de la función
+                // por ej: hola => ['h', 'o', 'l', 'a']
+                // como parámetro puedo pasar una función -> callback
 
+                let ejArray1 = Array.from('hola') // [ 'h', 'o', 'l', 'a' ]
+                console.log(ejArray1);
 
+                let ejFuncion = Array.from('hola', el => el.toUpperCase()) // [ 'H', 'O', 'L', 'A' ]
+                console.log(ejFuncion);
 
+                let operacion = Array.from([1, 2, 3], el => el + el) // [2, 4, 6]
+                console.log(operacion);
 
+            //! map()
 
-
-
-
-
-        /* let frutas = ['pera', 'manzana', 'kiwi', 'naranja']
-        let postres = ['tarta', 'brownie']
-        let bebidas = ['agua', 'cocacola', 'cafe']
-        console.log(frutas.concat(postres, bebidas)); // concatena el primer array con el segundo, tercero, ...
-        frutas[0] = 'mandarina' // modificar elemento 0
-        console.log(frutas);
-        console.log(frutas.length); //cuantos elementos tiene el array - longitud --- 4
-        frutas[4] = 'platano' // añadir elemento posicion 4
-        console.log(frutas);
-        console.log(frutas.pop()); //saca el ultimo elemento
-        console.log(frutas);
-        console.log(frutas.push('uvas')); // añade ultimo elemento
-        console.log(frutas);
-        console.log(frutas.shift()); // saca el primer elemento
-        console.log(frutas);
-
-        const meses = ['Enero', 'Marzo', 'Abril', 'Junio'];
-        //splie --- devuelve un array
-        //array.splice(posicion, eliminar o no, valor)
-        meses.splice(1, 0, 'Febrero') // añade Febrero a la posicion 1 + no elimina el valor de la posicion 1 + modifica el array
-        console.log(meses); //['Enero', 'Febrero', 'Marzo', 'Abril', 'Junio']
-
-        meses.splice(4, 1, 'Mayo') // añade Mayo a la posicion 4 + elimina el valor de la posicion 4 + modifica el array
-        console.log(meses); //['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo'] */
+                // crea un array con el resultado de una instrucción a cada elemento
+                // no modifica el array
+                
+                let mapNum = [1, 2, 3, 4, 5]
+                let alCuadrado = mapNum.map(
+                    function (el) {
+                        return el * el
+                    }
+                )
+                // igual con arrow function ---> let alCuadradoArrow = mapNum.map(el => el * el)
+                console.log(alCuadrado); // [ 1, 4, 9, 16, 25 ]

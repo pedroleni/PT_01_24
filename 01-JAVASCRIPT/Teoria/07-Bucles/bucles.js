@@ -46,3 +46,39 @@
     do {
         console.log("vale, lo hago una vez");
     } while (false);
+
+
+    //! forEach
+
+        // bucle for pero más funconal
+        // djecuta una función en cada vuelta al bucle
+
+        let coches = ['mercedes', 'toyota', 'mini', 'fiat']
+
+        coches.forEach(
+            function (el) {
+                console.log(el);
+            }
+        )
+
+        // arrow function
+        
+        coches.forEach(el => console.log(el))
+
+        // o en una variable y forEach a la función
+
+        let listaCoches = (el) => console.log(el);
+        coches.forEach(listaCoches)
+
+    
+    //! for ... of
+
+
+
+    //! for ... in
+
+
+
+    //------>  ejercicios <------//
+
+    
