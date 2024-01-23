@@ -10,6 +10,7 @@
         }  */ 
 
         for (let i = 0; i <= 10; i++) {
+            //instrucción
             console.log(i);
         }
 
@@ -50,8 +51,8 @@
 
     //! forEach
 
-        // bucle for pero más funconal
-        // djecuta una función en cada vuelta al bucle
+        // bucle for pero más funcional
+        // ejecuta una función en cada vuelta al bucle
 
         let coches = ['mercedes', 'toyota', 'mini', 'fiat']
 
@@ -70,14 +71,105 @@
         let listaCoches = (el) => console.log(el);
         coches.forEach(listaCoches)
 
+
+        // otro ejemplo con alumnos
+
+            let alumnos = ['david', 'laura', 'elena', 'fran']
+
+            // david
+            // laura
+            // elena
+            // fran
+
+            alumnos.forEach(
+                function (alumno) {
+                    console.log(alumno);
+                }
+            );
+
+            // arrow function
+
+            alumnos.forEach(alumno => console.log(alumno))
+
+            // o en una variable y forEach a la función
+
+            let listaAlumnos = alumno => console.log(alumno);
+            alumnos.forEach(listaAlumnos)
     
     //! for ... of
+        
+        // sintaxis
 
+            /* for (let iterator of object) {
+                
+            } */
 
+            // iterator = parametro dentro del bucle
+            // object = objeto sobre el que hacemos el bucle
+
+        // sumar 1 a cada elemento del array ---> 11, 21, 31, 41
+        let arrayForOf = [8, 10, 20, 30, 40]
+
+        // sumar 1 a todos
+        
+        for (let numero of arrayForOf) {
+            numero += 1;
+            console.log(numero); // 11, 21, 31, 41
+        }
+
+        // solo sobre 10
+
+        for (let numero of arrayForOf) {
+            if (numero === 10) {
+                numero += 1;
+                console.log(numero); // 11
+            }
+        }
 
     //! for ... in
 
+        // recorre las propiedades de un objeto
+            // key : value
+            // propiedad : valor
 
+            // sintaxis
+
+                /* for (let propiedad in objeto) {
+                
+                } */
+        
+        let personaje = {
+            nombre : 'Lisa', 
+            apellido : 'Simpson', 
+            ciudad : 'Sprinfield',
+            instrumento : 'Saxofón'
+        }
+
+        // Este personaje tiene de NOMBRE LISA SIMPSON
+        for (let x in personaje) {
+            console.log('Este personaje tiene de ' + x + ' ' + personaje[x]);
+        }
+
+            // x sería la propiedad
+            // personaje[x] sería el valor
+
+            /* Este personaje tiene de nombre Lisa
+            Este personaje tiene de apellido Simpson
+            Este personaje tiene de ciudad Sprinfield
+            Este personaje tiene de instrumento Saxofón */
+
+        // buena práctica sobre array
+
+            // recorre cada indice del array
+            // la propiedad/key sería el índice/[0]
+            // el valor/value sería el elemento/perro
+
+        let animales = ['perro', 'gato', 'caballo', 'oruga']
+
+        for (const animal in animales) {
+            console.log(animal); // indice
+            console.log(animales[animal]); // perro, ...
+        }
 
     //------>  ejercicios <------//
 
