@@ -52,7 +52,7 @@
     //! JSON.stringify()
         // convierte objetos a JSON
 
-        /* let coche2 = {
+        let coche2 = {
             marca : 'Seat',
             modelo : 'Ibiza',
             electrico : false,
@@ -65,4 +65,4 @@
         let aJSON = JSON.stringify(coche2)
 
         console.log(aJSON); // saca el objeto en JSON // '{"marca":"Seat","modelo":"Ibiza","electrico":false,"marchas":["automatico","manual"]}'
-        console.log(typeof aJSON); // string */ 
+        console.log(typeof aJSON); // string
