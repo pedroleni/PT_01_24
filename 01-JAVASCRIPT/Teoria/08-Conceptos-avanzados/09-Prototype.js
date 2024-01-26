@@ -27,12 +27,17 @@
     }
 
     // método en forma de prototype
+        // usar la función constructora Persona
+        // añadir prototype
+        // añadir método propio con su función y su instrucción
     Persona.prototype.presentacion = function () {
         console.log(`Hola, soy ${this.nombre} y tengo ${this.edad} años`);
     }
 
-    let Liviu = new Persona('Liviu', 20),
-    Laura = new Persona('Laura', 22)
+    // creaci´pon de dos objetos Liviu y Laura
+    let Liviu = new Persona('Liviu', 20);
+    let Laura = new Persona('Laura', 22);
+    let Elena = new Persona('Elena', 26)
 
     console.log(Liviu.presentacion()); // Hola, soy Liviu y tengo 20 años
     console.log(Laura.presentacion()); // Hola, soy Laura y tengo 22 años
@@ -60,3 +65,39 @@
     let estudiante1 = new Estudiante('Ángel', 23, 'Desarrollo web')
     console.log(estudiante1);
     console.log(estudiante1.saludar());
+
+
+    //! clases en javascript
+        // la keyword 'class' que hace que JS imite a lenguaje POO
+        // prototype + class
+
+        class Animales {
+            // creamos las propiedades con los parámetros
+            constructor(nombre, color){
+                this.nombre = nombre;
+                this.color = color;
+            }
+            // creamos método
+            sonar(){
+                return `Hola, soy un ${this.nombre} de color ${this.color} y hago sonidos`
+            }
+        }
+
+        let animal1 = new Animales('gato', 'gris');
+        console.log(animal1);
+
+    //! herencia en clases
+        // hereda el class Animals y se lo añade a una nueva class
+
+        class Perros extends Animales {
+            // heredamos propiedades de Animales y añadimos otra
+            constructor(nombre, color, raza){
+                super(nombre, color);
+                this.raza = raza;
+            }
+            // nuevo metodo para Perros
+            ladrar(){return `Guau!`}
+        }
+
+        let Uma = new Perros('perro', 'blanco', 'border collie')
+        console.log(Uma.ladrar()); // Guau!
