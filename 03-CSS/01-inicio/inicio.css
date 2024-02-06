@@ -1,3 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+
+*{
+    font-family: 'Montserrat', sans-serif;
+    font-size:15px;
+    font-weight: 400;
+    font-style:italic;
+}
+
 /* selector etiqueta */
 h2 {
     text-decoration: underline;
@@ -69,17 +78,13 @@ ol > li::before{
     content:">>> "
 }
 
-/* unidades de medida */
-.titulo-medidas{
-    font-size: 20px;
-}
 /* el padre html tiene una medida absoluta de 10px, el resto de elementos serán a esta medida*/
 html{
-    font-size:10px;
+    font-size:1.5em;
 }
 /*15px relativo a html*/
 p{
-    font-size: 1.5em;
+    font-size: 1em;
 }
 
 /* con medidas rem tenemos que aplicarlo al elemento raiz --- :root*/
