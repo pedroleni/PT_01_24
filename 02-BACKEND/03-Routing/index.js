@@ -56,7 +56,7 @@ const app = http.createServer((req, res) => {
             break;
     }
 
-    // endpoint con metodo GET
+    // endpoint con metodo GET con endpoint /alumnos
 
     if(method === "GET" && url === "/alumnos"){
         // response
