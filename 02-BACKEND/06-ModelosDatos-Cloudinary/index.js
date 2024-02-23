@@ -27,6 +27,27 @@ const app = express();
 app.use(express.json({limit: "5mb"}));
 app.use(express.urlencoded({limit: "5mb", extended:false}));
 
+//! --- RUTAS
+
+const CharacterRoutes = require("./src/api/routes/Character.routes");
+app.use("/api/v1/characters/", CharacterRoutes)
+
+//! --- ERROR 404 ---> no se encuentra una ruta ---> error de USER o CLIENTE
+
+app.use("*", (req, res, next) => {
+    const error = new Error("Route not found");
+    error.status = 404;
+    return next(error)
+})
+
+//! --- ERROR 500 ---> no funciona el servidor (chrased server) ---> error de SERVIDOR
+
+app.use((error, req, res) => {
+    return res
+    .status(error.status || 500)
+    .json(error.message || "Unexpected error")
+})
+
 //! --- ESCUCHAR EN EL PUERTO EL SERVIDOR WEB
 
 app.listen(PORT, () => {
