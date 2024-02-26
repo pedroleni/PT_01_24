@@ -13,7 +13,7 @@ const create = async(req, res, next) => {
      * en en controlador, una vez dentro, el elemento no se crea */
 
     // optional chaining ? >>> como la imagen no es obligatoria - required:false - puede ser que no tengamos un req.file
-    let cathImg = req.file?.path; // si tiene req.file trae el path y si no tiene req.file no trae el path
+    let catchImg = req.file?.path; // si tiene req.file trae el path y si no tiene req.file no trae el path
 
     try {
         //! --- ACTUALIZAR LOS INDEXS
@@ -29,7 +29,7 @@ const create = async(req, res, next) => {
         /** si recibimos la imagen metemos la url (path) en el objeto creado arriba (en la instancia) */
         if (req.file){
             // si hay file me traes el path de la imagen
-            newCharacter.image = cathImg;
+            newCharacter.image = catchImg;
         } else {
             // si no hay file metes esta imagen estandar
             newCharacter.image = "https://res.cloudinary.com/deahoouj6/image/upload/v1708714215/placeholder_qj5di6.webp"
@@ -52,7 +52,7 @@ const create = async(req, res, next) => {
         /** si ha habido un error >>> 
          * borramos la imagen de cloudinary porque va antes del controlador
          * y devolvemos respuesta con el error de que no se ha producido el POST (create) */
-        req.file?.path && deleteImgCloudinary(cathImg);
+        req.file?.path && deleteImgCloudinary(catchImg);
         next(error);
         return (
             res.status(404).json({
