@@ -6,7 +6,8 @@ const {
     getById, 
     getAll,
     getByName,
-    update
+    update,
+    deleteCharacter
 } = require("../controllers/Character.controllers");
 
 //!! --- importamos también el router
@@ -27,6 +28,7 @@ CharacterRoutes.get("/:id", getById)
 CharacterRoutes.get("/", getAll)
 CharacterRoutes.get("/byName/:name", getByName)
 CharacterRoutes.patch("/:id", upload.single("image"), update)
+CharacterRoutes.delete("/:id", deleteCharacter)
 
 
 //! --- exportamos la ruta

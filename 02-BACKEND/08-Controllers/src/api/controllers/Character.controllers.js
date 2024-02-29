@@ -1,6 +1,7 @@
-//! --- importaciones de --- middleware de Cloudinary + modelo Character
+//! --- importaciones de --- middleware de Cloudinary + modelo Character ´modelo Movie para el match delete
 const { deleteImgCloudinary } = require("../../middleware/files.middleware");
 const Character = require("../models/Character.model")
+const Movie = require("../models/Movie.model")
 const enumOk = require("../../utils/enumOk")
 
 /** CRUD
@@ -333,6 +334,56 @@ const update = async (req, res, next) => {
 //! -----------------------------------------------------
 //? ---------------------- DELETE -----------------------
 //! -----------------------------------------------------
+const deleteCharacter = async(req, res, next) => {
+    try {
+        /** traernos el id del personaje mediante un parametro :id */
+        const { id } = req.params;
+        /** aplicamos el metodo, en este caso find by id and delete ---> para eliminar */
+        const character = await Character.findByIdAndDelete(id);
+
+        // buscamos el personaje para ver si existe
+        if(character){
+            const findByIdcharacter = await Character.findById(id)
+
+            // borramos los id del personaje
+            /** tenemos que borrar los id del personaje que hemos borrado con el delete
+             * donde lo tenemos que borrar? dentro del array de characters de movie ---> movie --- characters []
+             */
+            try {
+                /** el primer objeto hace de condicion para que compruebe si hay characters o no
+                 * y con el pull se ejecuta el traer el id, en caso de que haya
+                 */
+                const test = await Movie.updateMany(
+                    { characters: id},
+                    { $pull: { characters: id} }
+                )
+
+                return res
+                .status(findByIdcharacter ? 404 : 200)
+                .json({ deleteTest : findByIdcharacter ? true : false})
+
+            } catch (error) {
+                // error si no se ha actualizado
+                return res.status(404).json({error:error.message})
+            }
+        }
+
+
+
+        //? ----------------------- TESTEO ------------------------
+        /* const findByIdCharacter = await Character.findById(id)
+
+        if (findByIdCharacter) {
+            return res.status(404).json("no se ha borrado 🚫", error)
+        } else {
+            return res.status(200).json("se ha borrado 👌")
+        } */
+        //? ----------------------- FIN TESTEO ---------------------
+
+    } catch (error) {
+        return res.status(404).json("ha habido un error", error)
+    }
+}
 
 
 //! --- EXPORTAMOS EL CONTROLADOR
@@ -342,5 +393,6 @@ module.exports = {
     getById,
     getAll,
     getByName,
-    update
+    update,
+    deleteCharacter
 }
