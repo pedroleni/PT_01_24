@@ -17,8 +17,8 @@ const createMovie = async (req, res, next) => {
         const savedMovie = await newMovie.save()
         /** devuelve si se ha guardado o no con status y mensaje o movie */
         return res
-        .status(savedMovie ? 200 : 404)
-        .json(savedMovie ? savedMovie : "error al crear la movie")
+            .status(savedMovie ? 200 : 404)
+            .json(savedMovie ? savedMovie : "error al crear la movie")
 
     } catch (error) {
         return res.status(404).json({
@@ -39,100 +39,115 @@ const createMovie = async (req, res, next) => {
 
 //? en la ruta (dentro de MovieRoutes) add/:id --->  el id se refiere al id de la pelicula que es el que buscamos con movieByid
 const toggleCharacter = async (req, res, next) => {
-    // este es el id de la movie que vamos a actualizar
-    const { id } = req.params;
-    // enviamos esto por el req.body de movie ---> "723623", "827463467", "3848336" ---> una vez aplicado el split(",")
-    const { characters } = req.body; 
+    try {
+        /** estee id es el id de la moviee que queremos actualizar */
+        const {
+            id
+        } = req.params;
+        const {
+            characters
+        } = req.body; // -----> idDeLosCharacter enviaremos esto por el req.body "12412242253,12535222232,12523266346"
+        /** Buscamos la pelicula por id para saber si existe */
+        const movieById = await Movie.findById(id);
 
-    /** Buscamos la pelicula por id para ver si existe */
-    const movieById = await Movie.findById(id)
+        /** vamos a hacer un condicional para si existee hacer la update sino mandamos un 404 */
+        if (movieById) {
+            /** cageemos el string que traemos del body y lo convertimos en un array
+             * separando las posiciones donde en el string habia una coma
+             * se hace mediante el metodo del split
+             */
+            const arrayIdCharacters = characters.split(",");
 
-    /** hacemos condicional para ver si existe o mandar un error, manejamos esa busqueda */
-    if (movieById) {
-        /** cargamos el split que taremos del req.body y lo convertimos en un array
-         * separando las posiciones con una coma que es como se separan los elementos de un array
-         * eso se hace mediante el metodo split
-         */
-        const arrayIdCharacters = characters.split(",")
+            /** recorremos este array que hemos creado y vemos si tenemos quee:
+             * 1) ----> sacar eel character si ya lo tenemos en el back
+             * 2) ----> meterlo en caso de que no lo tengamos metido en el back
+             */
+            Promise.all(
+                    arrayIdCharacters.map(async (character, index) => {
+                        if (movieById.characters.includes(character)) {
+                            //*************************************************************************** */
 
-        /** recorremos este array y comprobamos:
-         * 1) ---> si tenemos el character ---> lo sacamos de la db
-         * 2) ---> si no tenemos el character ---> lo metemos en la db
-         */
+                            //________ BORRAR DEL ARRAY DE PERSONAJES EL PEERSONAJE DENTRO DE LA MOVIE___
 
-        /** metemos toda la logica del mapeo en un promise.all 
-         * para decirle que todas las asincronias que se han ido cumpliendo dentro
-         * nos las resuelva --- una vez que terminen las asincronias nos devuelve una promesa
-         * diciendo que se han podido cumplir todas --- devuelve >>> el movie actualziado con los characters
-         */
-        Promise.all(
-            arrayIdCharacters.map(async (character, index) => {
-                if (movieById.characters.includes(character)) {
-                    /** 1) ---> si tenemos el character ---> lo sacamos de la db
-                     * usamos $pull
-                     */
-                    try {
-                        await Movie.findByIdAndUpdate(id, {
-                            // dentro de character saca el id del elemento que recorro (movie)
-                            $pull : { characters : character }
-                        })
-    
-                        try {
-                            await Character.findByIdAndUpdate(character, {
-                                // sacamos la movie del character
-                                $pull : { movies : id }
-                            })
-                        } catch (error) {
-                            return res.status(404).json({
-                                error: "error update character - pull",
-                                message: error.message
-                            }) && next(error)
+                            //*************************************************************************** */
+
+                            try {
+                                await Movie.findByIdAndUpdate(id, {
+                                    // dentro de la clavee characters me vas a sacar el id del elemento que estoy recorriendo
+                                    $pull: {
+                                        characters: character
+                                    },
+                                });
+
+                                try {
+                                    await Character.findByIdAndUpdate(character, {
+                                        $pull: {
+                                            movies: id
+                                        },
+                                    });
+                                } catch (error) {
+                                    res.status(404).json({
+                                        error: "error update character",
+                                        message: error.message,
+                                    }) && next(error);
+                                }
+                            } catch (error) {
+                                res.status(404).json({
+                                    error: "error update movie",
+                                    message: error.message,
+                                }) && next(error);
+                            }
+                        } else {
+                            //*************************************************************************** */
+                            //________ METER EL PERSONAJE EN EL ARRAY DE PERSONAJES DE LA MOVIE_____________
+                            //*************************************************************************** */
+                            /** si no lo incluye lo tenemos que meter -------> $push */
+
+                            try {
+                                await Movie.findByIdAndUpdate(id, {
+                                    $push: {
+                                        characters: character
+                                    },
+                                });
+                                try {
+                                    await Character.findByIdAndUpdate(character, {
+                                        $push: {
+                                            movies: id
+                                        },
+                                    });
+                                } catch (error) {
+                                    res.status(404).json({
+                                        error: "error update character",
+                                        message: error.message,
+                                    }) && next(error);
+                                }
+                            } catch (error) {
+                                res.status(404).json({
+                                    error: "error update movie",
+                                    message: error.message,
+                                }) && next(error);
+                            }
                         }
-                    } catch (error) {
-                        return res.status(404).json({
-                            error: "error update movie - pull",
-                            message: error.message
-                        }) && next(error)
-                    }
-                } else {
-                    /** 2) ---> si no tenemos el character ---> lo metemos en la db 
-                     * usamos $push
-                    */
-                    try {
-                        await Movie.findByIdAndUpdate(id, {
-                            // metemos el character en la movie
-                            $push: { characters : character }
-                        })
-    
-                        try {
-                            await Character.findByIdAndUpdate(character, {
-                                // metemos la movie en el character
-                                $push : { movies : id }
-                            })
-                        } catch (error) {
-                            return res.status(404).json({
-                                error: "error update character - push",
-                                message: error.message
-                            }) && next(error)
-                        }
-                    } catch (error) {
-                        return res.status(404).json({
-                            error: "error update movie - push",
-                            message: error.message
-                        }) && next(error)
-                    }
-                }
-            })
-        ).then(async () => {
-            return res.status(200).json({
-                dataUpdate : await Movie.findById(id)
-            })
-        })
-    } else {
-        /** si no encuentra el id nos dice que la peli no existe */
-        res.status(404).json("esta movie no existe")
+                    })
+                )
+                .catch((error) => res.status(404).json(error.message))
+                .then(async () => {
+                    return res.status(200).json({
+                        dataUpdate: await Movie.findById(id).populate("characters"),
+                    });
+                });
+        } else {
+            return res.status(404).json("esta pelicula no existe");
+        }
+    } catch (error) {
+        return (
+            res.status(404).json({
+                error: "error catch",
+                message: error.message,
+            }) && next(error)
+        );
     }
-}
+};
 
 //! -----------------------------------------------------
 //? ---------------------- delete -----------------------
@@ -142,4 +157,7 @@ const toggleCharacter = async (req, res, next) => {
 
 
 //! --- exportaciones
-module.exports = { createMovie, toggleCharacter }
+module.exports = {
+    createMovie,
+    toggleCharacter
+}
