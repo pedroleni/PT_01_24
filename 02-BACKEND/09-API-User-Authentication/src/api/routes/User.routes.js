@@ -1,6 +1,7 @@
 //! -- importaciones
 
 const { upload } = require("../../middleware/files.middleware");
+const { isAuth } = require("../../middleware/auth.middleware")
 const { 
     registerLargo, 
     registerEstado, 
@@ -8,9 +9,12 @@ const {
     sendCode, 
     login,
     exampleAuth,
-    autoLogin
+    autoLogin,
+    resendCode,
+    checkNewUser,
+    changePassword,
+    sendPassword
 } = require("../controllers/User.controllers")
-const { isAuth } = require("../../middleware/auth.middleware")
 
 //! --- hacer el enrutado
 
@@ -24,6 +28,10 @@ UserRoutes.post('/registerRedirect', upload.single('image'), registerRedirect)
 UserRoutes.post('/login', login)
 UserRoutes.get('/pruebas', [isAuth], exampleAuth)
 UserRoutes.post('/login/autologin', autoLogin)
+UserRoutes.post("/resendCode", resendCode)
+UserRoutes.post("/check", checkNewUser)
+UserRoutes.patch("/forgotPassword", changePassword)
+UserRoutes.patch("/sendPassword/:id", sendPassword)
 
 /** controlador que se usa con el redirect */
 UserRoutes.post('/register/sendMail/:id', sendCode)

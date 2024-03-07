@@ -8,7 +8,8 @@ const { setTestEmailSend, getTestEmailSend } = require("../../state/state.data")
 const { configs } = require("eslint-plugin-prettier"); // libreria eslint y prettier
 const bcrypt = require("bcrypt"); // libreria bcryt para encriptado
 const { generateToken } = require("../../utils/token"); // funcinon para generar el token de autenticacion
-
+const { setError } = require("../../helpers/handleError"); // funcinon para manejar errores en los catch
+const { randomPassword } = require("../../utils/randomPassword"); // funcion para generar contraseña segura aleatoria
 
 //! --------------------------------------------------------
 //? ---------------------- Registro largo ------------------
@@ -427,6 +428,245 @@ const autoLogin = async (req, res, next) => {
         }
 };
 
+
+//! --------------------------------------------------------
+//? --------------------- resend code ----------------------
+//! --------------------------------------------------------
+
+/** sirve para volver a enviar el codigo de confirmacion por email al usuario
+ * necesitamos el email del usuario para poder enviarselo de nuevo
+ * es parecido al registro pero con un usuario ya registrado, entonces solo
+ * neceistamos comprobar si el email que nos está dando, que tiene que ser con el
+ * que se ha registrado, está en la db asociada a ese usario y volver a enviarle el codigo
+ */
+
+const resendCode = async(req, res, next) => {
+    try {
+        //!-- config de nodemailer para poder enviar el codigo
+        /** tener en cuenta que el email y password son los el .env
+         * que estñan asociados al servicio de gmail con nodemailer
+         */
+        const email = process.env.EMAIL;
+        const password = process.env.PASSWORD;
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: email,
+                pass: password
+            }
+        })
+
+        //! -- comprobamos que el usuario existe para mandarle el email
+        
+        /** nos traemos el email que nos ha dado el usuario como registrado */
+        const userExists = await User.findOne({ email: req.body.email })
+
+        /**  si el usuario existe, está registrado, le enviamos de nuevo el código de confirmacion
+         * si el usuario no existe no hacemos ninguna verificación, 
+         * simplemente enviamos error de que ese email no está registrado */
+        if (userExists) {
+            const mailOptions = {
+                from: email,
+                to: userExists.email, // o también ---> userExists.email
+                subject: "Confirmation code",
+                text: `tu codigo es ${userExists.confirmationCode}, gracias por confiar en nosotros ${userExists.name}`,
+            };
+    
+            transporter.sendMail(mailOptions, function (error, info) {
+                /** si hay un error en el envio le decimos que el resend es false ---> no se ha enviado el codigo
+                 *  si se ha enviado le decimos que el resend es true
+                 */
+                if (error) {
+                    console.log(error);
+                    return res.status(404).json({
+                        resend: false,
+                    })
+                } else {
+                    console.log('Email enviado - info del email: ' + info.response);
+                    return res.status(200).json({
+                        resend: true,
+                    })
+                }
+            })
+        } else {
+            return res.status(404).json("este correo no está registrado")
+        }
+
+    } catch (error) {
+        /** manejamos este error con la función setError que estña fuera del controlador
+         * la tenemos en ./helpers/handleError.js
+         */
+        return next(setError(500, error.message || "Error catch general"))
+    }
+}
+
+//! --------------------------------------------------------
+//? ------------------ check new user ----------------------
+//! --------------------------------------------------------
+
+/** con la funcion checkNewUser le pedimos al usuario nuevo el codigo de confirmacion que se 
+ * le ha enviado por email para poder terminar su registro en la apliacion
+ */
+const checkNewUser = async(req, res, next) => {
+    try {
+        // nos traemos de la req.body el email y el codigo de confirmacion que nos ha dado el usuario en el formulario
+        const { email, confirmationCode } = req.body;
+
+        // buscamos al usuario con el email que nos ha dado
+        const userExists = await User.findOne({ email });
+
+        // comprobamos su el usuario existe, si está registrado o no
+        if (!userExists) {
+            // si no está registrado le decimos que ese email/usuario no existe/no registrado
+            return rest.status(404).json("el usuario no existe")
+        } else {
+            /** si el usuario está registrado en la app compruebo si el codigo que confirmacion
+             * que me ha dado en el input del formulario coindice con el codigo de confirmacion
+             * que se ha creado en el user de la db al hacer el registro
+             */
+            if (confirmationCode === userExists.confirmationCode) {
+                // si los codigos de cofirmacion coinciden entonces actualizo el checl del usuario
+                try {
+                    // hago un updateOne del check del usuario a tru, por defecto nos aparecia como false (ver modelo User)
+                    await userExists.updateOne({ check: true });
+
+                    // busco de nuevo, con el email del user, el usuario actualizado
+                    const updateUser = await User.findOne({ email });
+
+                    // hago el test para ver si se ha hecho bien el cambio del check en el user
+                    return res.status(200).json({
+                        // con el operador ternario compruebo si el cjeck ahora es true
+                        textCheckOk: updateUser.check == true ? true : false,
+                    })
+                } catch (error) {
+                    return res.statys(404).json(error.message)
+                }
+            } else {
+                /** si los codigos de confirmacion no coinciden entonces vamos a borrar lo que se ha guardado del usuario
+                 * incluida la imagen con el middleware de cloudinary y mandamos al usuario a registrarse de nuevo
+                 * 
+                 * borramos el usuario porque ya tenemos un registro de su email, name, ... dentro de nuestra db
+                 * necesitabamos esta informacion para enviarle el correo con el codigo
+                 * como el codigo no es correcto tenemos que borrar todos los datos del user
+                 * porque no hemos conseguido verificar con el codigo que ese usuario "es propiertario" de ese email
+                 */
+                try {
+                    // en caso de equivocarse con el codigo lo borramos de la db y lo mandamos a registrarse
+                    await User.findByIdAndDelete(userExists._id);
+                    // borramos tambien la imagen
+                    deleteImgCloudinary(userExists.image)
+                    // devolvemos un status 200 con el test para verificar que se ha hecho el delete correctamente
+                    return res.status(200).json({
+                        userExists,
+                        check: false,
+                        // test en el runtime sobre la eliminacion de este user
+                        delete: (await User.findById(userExists._id)) ? "error delete user" : "ok delete user"
+                    })
+                } catch (error) {
+                    return next(setError(404, error.message || "Error catch delete"))
+                }
+            }
+        }
+    } catch (error) {
+        return next(setError(500, error.message || "Error catch general"))
+    }
+}
+
+//* --------------------------------------------------------
+//! -------------- CONTRASEÑAS Y SUS CAMBIOS ---------------
+//* --------------------------------------------------------
+
+//! --------------------------------------------------------
+//? ----- cambio de contraseña cuando no estás logueado ----
+//! --------------------------------------------------------
+
+const changePassword = async(req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        const userDb = await User.findOne({ email })
+        
+        //***** hasta aqui está bien -- ERROR EN REDIRECT */
+
+        if (userDb) {
+            const PORT = process.env.PORT;
+            return res.redirect(
+                307,
+                `http://localhost:${PORT}/api/v1/users/sendPassword/${userDb._id})`
+            )
+        } else {
+            return res.status(404).json("usuario no registrado")
+        }
+    } catch (error) {
+        return next(error)
+    }
+}
+
+const sendPassword = async(req, res, next) => {
+    try {
+        const { id } = req.params;
+        const userDb = await User.findById(id);
+
+        const email = process.env.EMAIL;
+        const password = process.env.PASSWORD;
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: email,
+                pass: password
+            }
+        });
+
+        let passwordSecure = randomPassword();
+        console.log(passwordSecure);
+
+        const mailOptions = {
+            from: email,
+            to: userDb.email,
+            subject: "contraseña reestablecida",
+            text: `hola ${userDb.name}, esta es tu nueva contraseña para el correo ${userDb.email}.
+            Puedes iniciar sesión con esta nueva contraseña: ${passwordSecure}`,
+        };
+
+        transporter.sendMail(mailOptions, async function (error, info) {
+            if (error) {
+                console.log(error);
+                return res.status(404).json("no se ha enviado el correo con la nueva contraseña y no se ha actualizado el user")
+            } else {
+                console.log('Email enviado - info del email: ' + info.response);
+                
+                const newPasswordBcrypt = bcrypt.hashSync(passwordSecure, 10);
+
+                try {
+                    await User.findByIdAndUpdate(id, { password: newPasswordBcrypt })
+
+                    //! --------- test del update de la contraseña ---------------
+                    const userPasswordUpdate = await User.findById(id);
+
+                    if (bcrypt.compareSync(passwordSecure, userPasswordUpdate.password)) {
+                        return res.status(200).json({
+                            updateUser: true,
+                            sendPassword: true
+                        })
+                    } else {
+                        return res.status(404).json({
+                            updateUser: false,
+                            sendPassword: true
+                        })
+                    }
+                } catch (error) {
+                    return res.status(404).json("error catch update")
+                }
+            }
+        })
+    } catch (error) {
+        return res.status(404).json("error catch general")
+    }
+}
+
+
+
+
 //! --- exportamos las funciones
 
 module.exports = { 
@@ -436,5 +676,9 @@ module.exports = {
     sendCode,
     login,
     exampleAuth,
-    autoLogin
+    autoLogin,
+    resendCode,
+    checkNewUser,
+    changePassword,
+    sendPassword
 }
