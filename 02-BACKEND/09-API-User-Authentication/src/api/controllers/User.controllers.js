@@ -1,11 +1,13 @@
 //! --- importaciones
-const User = require("../models/User.model")
-const randomCode = require("../../utils/randomCode");
-const { deleteImgCloudinary } = require("../../middleware/files.middleware");
-const nodemailer = require("nodemailer");
-const sendEmail = require("../../utils/sendEmail");
-const { setTestEmailSend, getTestEmailSend } = require("../../state/state.data");
-const { configs } = require("eslint-plugin-prettier");
+const User = require("../models/User.model") // modelo de User
+const randomCode = require("../../utils/randomCode"); // funcion generar codigo de confirmacion aleatorio
+const { deleteImgCloudinary } = require("../../middleware/files.middleware"); // funcion delete del middleware cloudinary
+const nodemailer = require("nodemailer"); // libreria nodemailer para envio el email
+const sendEmail = require("../../utils/sendEmail"); // funcion para enviar el email con nodemailer
+const { setTestEmailSend, getTestEmailSend } = require("../../state/state.data"); // funcion de test de set y get
+const { configs } = require("eslint-plugin-prettier"); // libreria eslint y prettier
+const bcrypt = require("bcrypt"); // libreria bcryt para encriptado
+const { generateToken } = require("../../utils/token"); // funcinon para generar el token de autenticacion
 
 
 //! --------------------------------------------------------
@@ -282,6 +284,9 @@ const registerRedirect = async (req, res, next) => {
     }
 }
 
+/** redireccion a sendCode para enviar el codigo de confirmacion
+ *  después de ejecutqr este controlador, volvemos a registerRedirect
+ */
 //! --------------------------------------------------------
 //? --------- enviar correo confirmacion con redirect ------
 //! --------------------------------------------------------
@@ -337,7 +342,99 @@ const sendCode = async (req, res, next) => {
     }
 }
 
+//! --------------------------------------------------------
+//? ---------------------- LOGIN ---------------------------
+//! --------------------------------------------------------
+
+const login = async (req, res, next) => {
+    try {
+        // recibimos por el body el email y el password que nos da el usuario
+        const { email, password } = req.body;
+        // buscamos un usuario que tenga ese email
+        const userDb = await User.findOne({ email })
+        // hacemos un if else para ver si existe el usuario
+        if (userDb) {
+            /** comparamos gracias a bcrypt la contraseña sin encriptar con la contraseña encriptada que tenemos en el back
+             * se usa bcrypt con el metodo compareSync
+             * >>>>> importante!! ---> las contraseñas tiene que ir en este orden
+             */
+            if (bcrypt.compareSync(password, userDb.password)) {
+                // si coinciden las contraseñas, me llamo a la fiiuncion de generar el token
+                const token = generateToken(userDb._id, email);
+                // una vez generado el token el envio al user su token
+                return res.status(200).json({
+                    user: userDb,
+                    token,
+                })
+            } else {
+                // las contraseñas no coiciden mandamos error
+                return res.status(404).json('las contraseñas no coinciden')
+            }
+        } else {
+            // si no encuentra el email que el usuario nos da, lanza un error
+            return res.status(404).json('usuario no registrado')
+        }
+    } catch (error) {
+        return next(error)
+    }
+}
+
+//! --------------------------------------------------------
+//? ------------ Ejemplo con Autenticación -----------------
+//! --------------------------------------------------------
+
+const exampleAuth = async (req, res, next) => {
+    // este { user } ---> se crea gracias a las funciones que tenemos en el middleware de autenticacion
+    // ese middleware crea el user comprobado con su token y aquí lo traemos para hacer un ejemplo
+    // de que es un user autentiado
+    const { user } = req;
+    return res.status(200).json(user)
+}
+
+//! --------------------------------------------------------
+//? ---------------------- auto login ----------------------
+//! --------------------------------------------------------
+
+/** aquí hacemos autologin de la siguiente manera ---> como no podemos guardar las contraseñas desencriptadas de una
+ * pagina a otra lo que hacemos es usar la contraseña que nos devuelve el registro (la encriptada) para compararla
+ * con la contraseña del usuario que está guardada en la db ---> así podemos hacer autologin, cogiendo la contraseña
+ * encripatda y comparándola con la encriptada del registro del usuario
+ * 
+ * por eso en el if de la comparación de la password lo hacemos en compareSync con bcrypt, porque usamos dos encriptadas
+*/
+
+const autoLogin = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+        const userDB = await User.findOne({ email });
+    
+        if (userDB) {
+            // comparo dos contraseñas encriptadas
+            if (password == userDB.password) {
+            const token = generateToken(userDB._id, email);
+            return res.status(200).json({
+                user: userDB,
+                token,
+            });
+            } else {
+            return res.status(404).json("password dont match");
+            }
+        } else {
+            return res.status(404).json("User no register");
+        }
+        } catch (error) {
+        return next(error);
+        }
+};
 
 //! --- exportamos las funciones
 
-module.exports = { registerLargo, registerEstado, registerRedirect, sendCode }
+module.exports = { 
+    registerLargo, 
+    registerEstado, 
+    registerRedirect, 
+    sendCode,
+    login,
+    exampleAuth,
+    autoLogin
+}
