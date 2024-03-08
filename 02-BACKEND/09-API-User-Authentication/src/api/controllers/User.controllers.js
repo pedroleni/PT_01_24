@@ -10,6 +10,7 @@ const bcrypt = require("bcrypt"); // libreria bcryt para encriptado
 const { generateToken } = require("../../utils/token"); // funcinon para generar el token de autenticacion
 const setError = require("../../helpers/handleError"); // funcinon para manejar errores en los catch
 const randomPassword = require("../../utils/randomPassword"); // funcion para generar contraseña segura aleatoria
+const enumOk = require("../../utils/enumOk");
 
 //! --------------------------------------------------------
 //? ---------------------- Registro largo ------------------
@@ -580,6 +581,13 @@ const checkNewUser = async(req, res, next) => {
 //? ----- cambio de contraseña cuando no estás logueado ----
 //! --------------------------------------------------------
 
+/** ----> el usuario no está logueado ---> no se pasa por el middleware de autenticación
+ * -----> el usuairo no elige la contraseña nueva ---> se la mandamos nosotros por email
+ * y la cambiamos en la db
+ * 
+ * si quiere una contraseña nueva tiene que loguearse e ir a modifyPassword
+ */
+
 const changePassword = async (req, res, next) => {
     try {
         const { email } = req.body;
@@ -661,8 +669,244 @@ const sendPassword = async (req, res, next) => {
 //? ----- cambio de contraseña cuando si estás logueado ----
 //! --------------------------------------------------------
 
+/** ---> el usuario tiene que estar logueado ---> tenemos que pasar por la funcion isAtuh del middleware
+ * ----> el ususario elige su nueva contraseña pero tiene que ser valdida con validator
+ * depsués actualizamos el user con la nueva pass
+ */
+const modifyPassword = async(req, res, next) => {
+    try {
+        /** nos traemos la contraseña nueva y la antigua, nos da la el user en el formulario
+         * 
+         * el body es un json con la password nueva y la antigua, que el user pone en el formulario de recuperacion de contraseña */
+        const { password, newPassword } = req.body;
+
+        /** validamos que se cumplan los requisitos de una contraseña segura según validator */
+        const validado = validator.isStrongPassword(newPassword); // true o false
+
+        /** si estás logueado y la contraseña está validada nos traemos el id del user, nos traemos el user
+         * para pdoer comparar las contraseñas y actualizar la password a la nueva password que nos ha dado
+         */
+
+        // validado es true
+        if (validado) {
+
+            /** este req.user sale de la función isAtuh del middlewate de autenticación
+             * el middleware comprueba que estamos autenticados y nos manda por la req.user el id
+             * lo recogemos en esta funcion de modifypassword para actualizarlo con la nueva pass
+             */
+            const { _id } = req.user;
+            
+            // comparamos contraseñas del usuario y de la db
+            if (bcrypt.compareSync(password, req.user.password)) {
+
+                // encriptamos la nueva contraseña
+                const newPasswordHashed = bcrypt.hashSync(newPassword, 10)
+
+                // por ultimo actualizamos el user con la contraseña nueva
+                try {
+                    await User.findByIdAndUpdate(_id, { password: newPasswordHashed })
+
+                    //* ------------ test update password en user ------------
+                    
+                    // traer el user por id
+                    const userUpdate = await User.findById(_id)
+                    // comparar las contraseñas 
+                    if (bcrypt.compareSync(newPassword, userUpdate.password)) {
+                        // respuesta de update user true (test OK)
+                        return res.status(200).json({
+                            userUpdate : true,
+                        })
+                    } else {
+                        // respuesta de update user false (test KO)
+                        return res.status(404).json({
+                            userUpdate : false,
+                        })
+                    }
+
+                    //* ---------------------- fin test ----------------------
+                } catch (error) {
+                    return res.status(404).json({
+                        error: "error catch update",
+                        message: error.message,
+                    })
+                }
+            } else {
+                // si no conseguimos validacion al comparar las contraseñas los lanza error del usuario
+                return res.status(404).json("las contraseñas no coinciden")
+            }
+        } else {
+            // validado es false
+            return res.status(404).json("las contraseña no es suficientemente segura")
+        }
+    } catch (error) {
+        return res.status(500).json({
+            error: "error catch general --- no autenticado",
+            message: error.message,
+        })
+    }
+}
+
+//! --------------------------------------------------------
+//? ----------------------- update -------------------------
+//! --------------------------------------------------------
+
+const update = async (req, res, next) => {
+    // capturamos la imagen porque el user contiene una imagen que se coge el middleware de cloudinary
+    let catchImg = req.file?.path;
+
+    try {
+        // actualizamos los indices del modelo User
+        await User.syncIndexes();
+        // hacemos una nueva instancia (objeto) con new de los elementos que nos da el usuario en la req.body del formulario
+        const patchUser = new User(req.body);
+
+        // salvaguardo la info que no quiero que me guarde en la nueva instancia de User
+        req.file && (patchUser.image = catchImg);
+        patchUser._id = req.user._id;
+        patchUser.password = req.user.password;
+        patchUser.rol = req.user.rol;
+        patchUser.confirmationCode = req.user.confirmationCode;
+        patchUser.email = req.user.email;
+        patchUser.check = req.user.check;
+
+        // usamos la funcion de utils enumOk para comprobar que al cambiar gender nos da un valor valido
+        if (req.body?.gender) {
+            const resultEnum = enumOk(req.body?.gender)
+            patchUser.gender = resultEnum.check
+            ? req.body?.gender
+            : req.user.gender
+        }
+
+        // hacemos otro try catch para la peticion del usuario con la peticion de update
+        // buscando el user por id
+        try {
+            // peticion del usuario por id y actualizacion con update
+            await User.findByIdAndUpdate(req.user._id, patchUser)
+            // borrado de imagen antigua, almancenada en el req.user en la propiedad image
+            if (req.file) { deleteImgCloudinary(req.user.image) }
+
+            //* --------- test runtime update del user -------
+            // traemos el user actualizado mediante el _id (recordad que en mongodb el id lleva _id antes)
+            const updateUser = await User.findById(req.user._id);
+            /** queremos saber que nos envia el usuario para hacer el testeo entonces tenemos que coger
+             * las propiedades de lo que quiere cambiar del objeto del body (req.body)
+             * 
+             * Object.keys() es un metodo que devuelve un array con las propiedades del objeto: name, image, email, gender...
+             */
+            const updateKeys = Object.keys(req.body);
+            /** creamos un array vacio para meter dentro esas propiedades mediante un forEach
+             * así solo cogemos las propiedades que nos da el usuario y no las que no necesitamos testear
+             * solo testeamos las propiedades que van a tener una actualizacion
+             */
+            const testUpdate = [];
+            /** hacemos un forEach de esas propiedades y cada propiedad va a ser un "item" */
+            updateKeys.forEach((item) => {
+                /** hacemos un "doble testeo" de esos item (propiedades)
+                 * en el primer if ---> comprobamos que la propiedad del usuario actualizado es igual a la propidad que nos ha dado el usuario en el formulario
+                 * >>>>>>>> si es igual ---> comprobamos dentro con otro if ---> comprobamos que las propiedades que no son distintas dentro del usuario
+                 * 
+                 * si no son distintas >>> puseamos dentro del array vacio la propiedad actualizada con un true ---> update ok
+                 * si son distintas >>> puseamos dentro del array vacio la propiedad actualizada con un false ---> update ko
+                 */
+                if (updateUser[item] === req.body[item]) {
+                    if (updateUser[item] != req.user[item]) {
+                        testUpdate.push({
+                            [item] : true,
+                        })
+                    } else {
+                        testUpdate.push({
+                            [item] : false,
+                        })
+                    }
+                } else {
+                    testUpdate.push({
+                        [item] : false,
+                    })
+                }
+            });
+            // hacemos el mismo testeo con la imagen
+            /** comprobamos que ha subido una imagen, que quiere cambiar la image
+             * y comprobamos que es igual a la imagen que hemos capturado al inicio de la funcion
+             * en el catchImg ---> la imagen nueva
+             * 
+             * puseamos dentro del array del test un obejto con los resultados del test ---> true o false
+             */
+            if (req.file) {
+                updateUser.image === catchImg 
+                ? testUpdate.push({
+                    image : true,
+                }) 
+                : testUpdate.push({
+                    image : false,
+                }) 
+            } else {
+                return res.status(200).json({
+                    updateUser,
+                    testUpdate,
+                })
+            }
+
+            //* -------------- fin test ----------------------
+
+        /** para manejar los errores de los try cacth primero tenemos que borrar la imagen que se ha quedado
+         * en el middleware de cloudinary y después damos respuesta con el error
+         * 
+         * el primer error será el del update ---> cliente
+         * el segundo error será en el servidor ---> back
+         */
+
+        } catch (error) {
+            req.file && deleteImgCloudinary(catchImg)
+            return res.status(404).json({
+                error: "error catch update",
+                message: error.message,
+            })
+        }
+
+    } catch (error) {
+        req.file && deleteImgCloudinary(catchImg)
+        return res.status(500).json({
+            error: "error catch general",
+            message: error.message,
+        })
+    }
+}   
 
 
+//! --------------------------------------------------------
+//? ----------------------- delete -------------------------
+//! --------------------------------------------------------
+
+const deleteUser = async (req, res, next) => {
+    try {
+        // hacemos un find by id and delete para borrar el usuario
+        await User.findByIdAndDelete(req.user._id);
+
+        //* --------- test runtime delete del user -------
+        // encapsulamos la busqueda de ese usuario que supuestamente se ha tenido que eliminar mediante su id
+        const userExist = await User.findById(req.user._id);
+        // lanzamos respuesta del test 
+        /** con el operador ternario lanzamos a la vez los errores de que el test ha salido bien y de que el test ha salido mal
+         * preguntamos su el usuaruo existe ---> si existe hay un error porque no se ha eliminado y el test es false
+         * si el usuario no existe ---> la respuesta es un 200 porque se ha eliminado el usuario y el test seria true
+         */
+        return res 
+        .status(userExist ? 404 : 200)
+        .json({
+            deleteTest : userExist ? false : true
+        })
+
+        //* -------------- fin test ----------------------
+    
+    // si hay un error en el delete primero borramos la imagen capturada y luego manejamos el error
+    } catch (error) {
+        req.file && deleteImgCloudinary(req.user?.image)
+        return res.status(500).json({
+            error: "error catch delete",
+            message: error.message,
+        })
+    }
+}
 
 
 //! --- exportamos las funciones
@@ -678,5 +922,8 @@ module.exports = {
     resendCode,
     checkNewUser,
     changePassword,
-    sendPassword
+    sendPassword,
+    modifyPassword,
+    update,
+    deleteUser
 }

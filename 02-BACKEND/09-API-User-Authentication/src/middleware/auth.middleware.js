@@ -57,6 +57,12 @@ const isAuth = async (req, res, next) => {
 
 //! --- ver el el user es administrador 
 
+/** esta función coge el token creado en la funcion isAuth, recibe el token y lo verifica decodificándolo
+ * después encuentra el user por id y comprueba sit iene rol de admin
+ * si tiene le rol de admin continúa la funcion ---> next()
+ * si no tiene ---> error y sale del back
+ */
+
 const isAuthAdmin = async (req, res, next) => {
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) {

@@ -149,6 +149,12 @@ const toggleCharacter = async (req, res, next) => {
     }
 };
 
+//! -------------------------------------------------------------------
+//? -------------------------- delete movie ---------------------------
+//! -------------------------------------------------------------------
+
+//* ESTE LO HACEIS VOSOTROS ---> coger de referencia el delete de Character (08) o de User (09)
+
 
 //! --- exportaciones
 module.exports = {
