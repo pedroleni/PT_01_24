@@ -8,8 +8,8 @@ const { setTestEmailSend, getTestEmailSend } = require("../../state/state.data")
 const { configs } = require("eslint-plugin-prettier"); // libreria eslint y prettier
 const bcrypt = require("bcrypt"); // libreria bcryt para encriptado
 const { generateToken } = require("../../utils/token"); // funcinon para generar el token de autenticacion
-const { setError } = require("../../helpers/handleError"); // funcinon para manejar errores en los catch
-const { randomPassword } = require("../../utils/randomPassword"); // funcion para generar contraseña segura aleatoria
+const setError = require("../../helpers/handleError"); // funcinon para manejar errores en los catch
+const randomPassword = require("../../utils/randomPassword"); // funcion para generar contraseña segura aleatoria
 
 //! --------------------------------------------------------
 //? ---------------------- Registro largo ------------------
@@ -580,89 +580,87 @@ const checkNewUser = async(req, res, next) => {
 //? ----- cambio de contraseña cuando no estás logueado ----
 //! --------------------------------------------------------
 
-const changePassword = async(req, res, next) => {
+const changePassword = async (req, res, next) => {
     try {
         const { email } = req.body;
-
-        const userDb = await User.findOne({ email })
-        
-        //***** hasta aqui está bien -- ERROR EN REDIRECT */
-
+        console.log(req.body);
+        const userDb = await User.findOne({ email });
         if (userDb) {
             const PORT = process.env.PORT;
             return res.redirect(
-                307,
-                `http://localhost:${PORT}/api/v1/users/sendPassword/${userDb._id})`
-            )
+            307,
+            `http://localhost:${PORT}/api/v1/users/sendPassword/${userDb._id}`
+            );
         } else {
-            return res.status(404).json("usuario no registrado")
+            return res.status(404).json("User no register");
         }
-    } catch (error) {
-        return next(error)
-    }
-}
+        } catch (error) {
+        return next(error);
+        }
+};
 
-const sendPassword = async(req, res, next) => {
+const sendPassword = async (req, res, next) => {
     try {
         const { id } = req.params;
         const userDb = await User.findById(id);
-
         const email = process.env.EMAIL;
         const password = process.env.PASSWORD;
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
-                user: email,
-                pass: password
-            }
+            user: email,
+            pass: password,
+            },
         });
-
         let passwordSecure = randomPassword();
         console.log(passwordSecure);
-
         const mailOptions = {
             from: email,
             to: userDb.email,
-            subject: "contraseña reestablecida",
-            text: `hola ${userDb.name}, esta es tu nueva contraseña para el correo ${userDb.email}.
-            Puedes iniciar sesión con esta nueva contraseña: ${passwordSecure}`,
+            subject: "-----",
+            text: `Hola ${userDb.name}. Tu nueva contraseña es: ${passwordSecure}`,
         };
-
         transporter.sendMail(mailOptions, async function (error, info) {
             if (error) {
-                console.log(error);
-                return res.status(404).json("no se ha enviado el correo con la nueva contraseña y no se ha actualizado el user")
+            console.log(error);
+            return res.status(404).json("dont send email and dont update user");
             } else {
-                console.log('Email enviado - info del email: ' + info.response);
-                
-                const newPasswordBcrypt = bcrypt.hashSync(passwordSecure, 10);
+            console.log("Email sent: " + info.response);
+            
+            const newPasswordBcrypt = bcrypt.hashSync(passwordSecure, 10);
+    
+            try {
+                await User.findByIdAndUpdate(id, { password: newPasswordBcrypt });
+    
+                //!------------------ test ------------------------
+                const userUpdatePassword = await User.findById(id);
+    
+                if (bcrypt.compareSync(passwordSecure, userUpdatePassword.password)) {
+                    return res.status(200).json({
+                        updateUser: true,
+                        sendPassword: true,
+                    });
+                } else {
 
-                try {
-                    await User.findByIdAndUpdate(id, { password: newPasswordBcrypt })
-
-                    //! --------- test del update de la contraseña ---------------
-                    const userPasswordUpdate = await User.findById(id);
-
-                    if (bcrypt.compareSync(passwordSecure, userPasswordUpdate.password)) {
-                        return res.status(200).json({
-                            updateUser: true,
-                            sendPassword: true
-                        })
-                    } else {
-                        return res.status(404).json({
-                            updateUser: false,
-                            sendPassword: true
-                        })
-                    }
-                } catch (error) {
-                    return res.status(404).json("error catch update")
+                    return res.status(404).json({
+                        updateUser: false,
+                        sendPassword: true,
+                    });
                 }
+            } catch (error) {
+                return res.status(404).json(error.message);
             }
-        })
-    } catch (error) {
-        return res.status(404).json("error catch general")
-    }
-}
+            }
+        });
+        } catch (error) {
+            return next(error);
+        }
+};
+
+//! --------------------------------------------------------
+//? ----- cambio de contraseña cuando si estás logueado ----
+//! --------------------------------------------------------
+
 
 
 

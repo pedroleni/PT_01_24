@@ -30,7 +30,7 @@ UserRoutes.get('/pruebas', [isAuth], exampleAuth)
 UserRoutes.post('/login/autologin', autoLogin)
 UserRoutes.post("/resendCode", resendCode)
 UserRoutes.post("/check", checkNewUser)
-UserRoutes.patch("/forgotPassword", changePassword)
+UserRoutes.patch("/forgotpassword", changePassword)
 UserRoutes.patch("/sendPassword/:id", sendPassword)
 
 /** controlador que se usa con el redirect */
