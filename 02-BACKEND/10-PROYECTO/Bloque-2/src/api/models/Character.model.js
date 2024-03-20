@@ -40,3 +40,35 @@ const Character = mongoose.model("Character", CharacterSchema);
 //! -------- exportar el modelo para que lo utilicen los controladores
 
 module.exports = Character;
+
+//* ------------------------------------------------------------------------
+//* ---- PARA PODER PONER MAS DE UNA OPCION VALIDADA POR ENUM EN EL GENDER
+//* ------------------------------------------------------------------------
+
+  //?--- en el modelo
+    //!--- se cambia el tipo de dato de gender a un array que contenga strings
+      /** gender: {
+        type: [String],
+        enum: ["hombre", "mujer", "otros"],
+        required: false,
+      }, */
+
+  //?--- en el update o register del controlador
+    //!--- si se recibe un array para el gender se verifican los resultados con la funcion enum
+      /** if (req.body?.gender) {
+        let updatedGender = req.body.gender.filter(g => enumOk(g).check);
+        // si hay algun elemento en el array se añade al updateGender para ver si se valida
+        if (updatedGender.length > 0) {
+          customBody.gender = updatedGender;
+        } else {
+          // si ningun gender es valido se mantiene el gender que estaba
+          customBody.gender = characterById.gender;
+        }
+      } */
+
+  //?--- uso en insomnia
+    //!--- multipar form
+      // usaremos comas para separar los string: piscina, terraza
+    
+    //!--- JSON
+      // gender: ['piscina', 'terraza']

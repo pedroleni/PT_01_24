@@ -321,6 +321,9 @@ const sendCode = async (req, res, next) => {
             to: userDB.email,
             subject: "Confirmation code",
             text: `tu codigo es ${userDB.confirmationCode}, gracias por confiar en nosotros ${userDB.name}`,
+            tls: {
+                rejectUnauthorized: false
+            }
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
