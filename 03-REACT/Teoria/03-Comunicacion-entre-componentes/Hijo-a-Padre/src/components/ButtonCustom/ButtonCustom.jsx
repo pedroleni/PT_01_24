@@ -1,31 +1,26 @@
 import "./ButtonCustom.css"
 
-//!-- COMUNICACIÓN DE PADRE A HIJO
+//!-- COMUNICACIÓN DE HIJO A PADRE
+/** en esta comunicación de hijo a padre, el hijo es el que contiene la función de cambio de estado
+ * a quien pertenece el estado ---> al padre
+ * 
+ * antes teniamos la función del cambiada el estado del padre dentro del padre
+ * ahora le pasamos directamente setCount y el hijo decide que logica hace ---> value + 1
+ * y en funicón de esa lógica, el hijo modifica al padre
+ */
+
+//! --- 4 puntos clave de React son:
+/** 1) useState 
+ *  2) comunicacion bidireccional 
+ *  3) asincronia
+ *  4) useEffect 
+ */
 
 export const ButtonCustom = ({state, setState, textButton}) => {
   return (
-        <button onClick={() => setState()}>
+    // como el estado no pertenece a este componente tengo que hacer una callback OBLIGATORIAMENTE !!!!
+        <button onClick={() => setState((value) => value + 1)}>
           {textButton} {state}
         </button>
   )
 }
-
-/** las props que usamos en este componente son: 
- * 
- * state ---> estado del contador
- * setState ---> es la función que maneja el contador
- * textButton ---> texto que va dentro del botón
- * 
- * por último, usamos "value" como parámetro de la función setState
- * y se refiere al valor actual del contador (del estado)
- * 
- * 
- * POR QUÉ COMPONETIZAR ESTE BOTÓN
- * este botón me sirve para cualquier estado cambiado, no solo para el contador
- */
-
-//!-- aqui vemos una comunicación padre a hijo
-/** porque state y setState pertenecen al padre 
- * ---> están declarados en App.jsx, que es el padre de ButtonCustom 
- * 
- * hay que enviar la info de este componente al padre, a App, para que la ejecute*/
