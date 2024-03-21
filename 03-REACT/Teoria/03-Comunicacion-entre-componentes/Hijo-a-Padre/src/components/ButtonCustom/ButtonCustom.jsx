@@ -1,6 +1,6 @@
 import "./ButtonCustom.css"
 
-//!-- COMUNICACIÓN DE HIJO A PADRE
+//!-- COMUNICACIÓN DE HIJO A PADRE ---> bidireccional
 /** en esta comunicación de hijo a padre, el hijo es el que contiene la función de cambio de estado
  * a quien pertenece el estado ---> al padre
  * 

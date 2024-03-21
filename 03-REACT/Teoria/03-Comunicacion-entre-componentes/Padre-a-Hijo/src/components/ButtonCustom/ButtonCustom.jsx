@@ -1,6 +1,6 @@
 import "./ButtonCustom.css"
 
-//!-- COMUNICACIÓN DE PADRE A HIJO
+//!-- COMUNICACIÓN DE PADRE A HIJO ---> unidireccional
 
 export const ButtonCustom = ({state, setState, textButton}) => {
   return (
