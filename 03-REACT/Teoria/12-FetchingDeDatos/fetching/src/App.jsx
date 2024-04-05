@@ -1,11 +1,11 @@
-import { useState } from 'react'
 import './App.css'
+import { PrintQuote } from './components'
 
 const App = () => {
 
   return (
     <>
-      <h1>hola</h1>
+      <PrintQuote />
     </>
   )
 }
