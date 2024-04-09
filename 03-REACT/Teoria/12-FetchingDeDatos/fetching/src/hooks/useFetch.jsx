@@ -13,7 +13,6 @@ import { useState } from "react";
 */
 
 export const useFetch = (url) => {
-    console.log('Entro en el fetching 💚');
     const [state, setState] = useState({
         data: null,
         isLoading: null,
@@ -39,7 +38,7 @@ export const useFetch = (url) => {
                 setState({
                     ...state, 
                     data: dataJson,
-                    isLoading: false
+                    isLoading: false,
                 })
             }
         } catch (error) {
