@@ -1,4 +1,3 @@
-import { updateToken } from '../utils';
 import { APIUser } from './service.config';
 
 /** creamos una función asíncrona registerUser que se exporta
@@ -15,7 +14,7 @@ import { APIUser } from './service.config';
 
 //! ------------- REGISTER --------------
 export const registerUser = async (formData) => {
-    return APIUser.post("/user/register", formData, {
+    return APIUser.post("/users/registerLargo", formData, {
         headers: {"Content-Type": "multipart/form-data"}
     })
     .then((res) => res)

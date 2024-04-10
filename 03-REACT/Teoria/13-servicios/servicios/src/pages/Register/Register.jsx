@@ -61,6 +61,7 @@ export const Register = () => {
          * 
          * con un componente Navigate navegará hasta la pagina de verificacion del codigo de confirmacion
          */
+        console.log('Estás registrado 😄');
     }
 
     return (

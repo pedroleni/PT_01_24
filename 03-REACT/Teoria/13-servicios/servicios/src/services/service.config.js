@@ -12,7 +12,7 @@ const APIHeaders = {
     Accept: "application/json",
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    Authorization: `Bearer ${updateToken()}`
+    Authorization: `Bearer ${updateToken()}`,
 }
 
 /** hacemos la petición creando una instancia objeto con axios
@@ -21,7 +21,7 @@ const APIHeaders = {
  * --> damos un tiempo máximo para realizar la petición
  */
 export const APIUser = axios.create({
-    baseURL: `node-user-production.up.railway.app/api/v1/`,
+    baseURL: `https://node-user-production.up.railway.app/api/v1`,
     headers: APIHeaders,
     timeout: 600000,
 })
