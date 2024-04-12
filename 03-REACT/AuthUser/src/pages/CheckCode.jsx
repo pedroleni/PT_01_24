@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import './CheckCode.css'
 
 export const CheckCode = () => {
