@@ -1,0 +1,14 @@
+footer {
+    width: 100vw;
+    min-height: 8vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #2f7a67;
+}  
+
+.whiteContainer {
+    width: 100vw;
+    height: 1vh;
+    background-color: white;
+}

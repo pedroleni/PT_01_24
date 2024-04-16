@@ -6,11 +6,13 @@ export const ForgotPassword = () => {
     const formSubmit = (formData) => {};
 
     //! 2) --------- useEffect que gestionan la res con sus errores y sus 200
-    useEffect(() => {}, [res]);
+    useEffect(() => {}, []);
 
     //! 3) --------- estados de navegacion o que la funcion esta ok
 
     return (
-        <></>
+        <>
+            <p>forgot password</p>
+        </>
     )
 }

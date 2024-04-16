@@ -6,13 +6,15 @@ export const Login = () => {
     const formSubmit = async(formData) => {};
 
     //! ------------- useEffect ascociados a la res para gestionar los errores ----
-    useEffect(() => {}, [res]);
+    useEffect(() => {}, []);
 
     useEffect(() => {}, []);
 
     //! ------------- Los condicionales que gestionan los estados de navegación
 
     return (
-        <></>
+        <>
+            <p>login</p>
+        </>
     )
 }

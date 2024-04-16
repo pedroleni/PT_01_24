@@ -8,13 +8,15 @@ export const CheckCode = () => {
     const handleReSend = async () => {};
 
     //! 2) --------- useEffect que nos sirve cuando cambia la res a lanzar el comprobador de errores
-    useEffect(() => {}, [res]);
+    useEffect(() => {}, []);
 
-    useEffect(() => {}, [resResend]);
+    useEffect(() => {}, []);
 
     //! 3) --------- condicionales que evaluan si estana  true los estados de navegacion
 
     return (
-        <></>
+        <>
+            <p>verify code</p>
+        </>
     )
 }
