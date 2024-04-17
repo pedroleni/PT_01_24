@@ -12,6 +12,33 @@ export const AuthContextProvider = ({ children }) => {
         return user ? JSON.parse(user) : null;
     });
 
+    // estado allUser que guarda la respuesta 200 ok del register
+    const [ allUser, setAllUser ] = useState({
+        data:{
+            confirmationCode: '',
+            user:{
+                password: '',
+                email: '',
+            },
+        },
+    });
+
+    // funcion puente --> para cuando tengamos problemas de asincronia
+    const bridgeData = (state) => {
+        const data = localStorage.getItem("data");
+        const dataJson = JSON.parse(data);
+        console.log(dataJson);
+        switch (state) {
+            case "ALLUSER":
+                setAllUser(dataJson);
+                localStorage.removeItem("data");
+                break;
+        
+            default:
+                break;
+        }
+    }
+
     // funcion login
     const login = (data) => {
         localStorage.setItem('user', data);
@@ -30,8 +57,11 @@ export const AuthContextProvider = ({ children }) => {
         user,
         setUser,
         login,
-        logout
-    }), [user]);
+        logout,
+        allUser,
+        setAllUser,
+        bridgeData,
+    }), [user, allUser]);
 
     // el componente del contexto
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
