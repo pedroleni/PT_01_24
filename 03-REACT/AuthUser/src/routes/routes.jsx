@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { App } from '../App'
 import { CheckCode, Dashboard, ForgotPassword, Home, Login, Profile, Register } from '../pages'
+import { Protected, ProtectedCheckChildren } from '../components'
 
 export const router = createBrowserRouter([
     {
@@ -21,11 +22,17 @@ export const router = createBrowserRouter([
             },
             {
                 path:'/profile',
-                element:<Profile />,
+                element:(
+                    <Protected>
+                        <Profile />
+                    </Protected>),
             },
             {
                 path:'/dashboard',
-                element:<Dashboard />,
+                element:(
+                <Protected>
+                    <Dashboard />
+                </Protected>),
             },
             {
                 path:'/forgotPassword',
@@ -33,7 +40,11 @@ export const router = createBrowserRouter([
             },
             {
                 path:'/verifyCode',
-                element:<CheckCode />,
+                element:(
+                    <ProtectedCheckChildren>
+                        <CheckCode />
+                    </ProtectedCheckChildren>
+                ),
             },
         ]
     }
