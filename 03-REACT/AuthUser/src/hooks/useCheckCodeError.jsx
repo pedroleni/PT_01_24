@@ -87,6 +87,7 @@ export const useCheckCodeError = (
   }
 
   // ------------- userNoFound ---> 404
+  // porque el usuario ha recargado la página y no encuentra el user --> tiene que ir al login
 
   if (res?.response?.status == 404) {
     setUserNotFound(() => true);
@@ -94,7 +95,7 @@ export const useCheckCodeError = (
     Swal.fire({
       icon: "error",
       title: "Interval server error ❎.",
-      text: "No delete user. Try again, please.",
+      text: "You need to sign to verify your code 🥺",
       showConfirmButton: false,
       timer: 1500,
     });

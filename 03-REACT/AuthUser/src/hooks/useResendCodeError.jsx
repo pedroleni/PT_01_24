@@ -5,12 +5,12 @@ export const useResendCodeError = (
   setResResend,
   setUserNotFound
 ) => {
-  /// 200 ---------> resend false
+  /// 404 ---------> resend false
   if (resResend?.data?.resend.toString() == "false") {
     setResResend(() => ({}));
     Swal.fire({
       icon: "error",
-      title: "Error send email with your code ✅",
+      title: "Error send email with your code 🔴. Try again, please!",
       showConfirmButton: false,
       timer: 1500,
     });
@@ -22,9 +22,9 @@ export const useResendCodeError = (
     setResResend(() => ({}));
     Swal.fire({
       icon: "success",
-      title: "Ok send email with your code ✅",
+      title: "Ok send email with your code ✅. Check your mail!",
       showConfirmButton: false,
-      timer: 1500,
+      timer: 3000,
     });
   }
 
@@ -39,7 +39,7 @@ export const useResendCodeError = (
     Swal.fire({
       icon: "error",
       title: "Interval server error ❎.",
-      text: "No resend code. Try again, please.",
+      text: "User not found. Go to login!",
       showConfirmButton: false,
       timer: 1500,
     });

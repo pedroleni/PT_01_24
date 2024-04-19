@@ -58,10 +58,33 @@ export const CheckCode = () => {
         };
     };
 
-    const handleReSend = async () => {};
+    // FUNCION RESEND CODE CONFIRMATION --> con boton con evento onClick (no tiene submit)
+    const handleReSend = async () => {
+        const userLocal = localStorage.getItem('user');
+        if (userLocal != null) {
+            // viene del login --> localStorage
+            const parseUser = JSON.parse(userLocal);
+            const custFormData = {
+                email: parseUser.email,
+            };
+            setSend(true);
+            setResResend(await resendCodeConfirmationUser(custFormData));
+            setSend(false);
+        } else {
+            // viene del register --> allUser
+            const custFormData = {
+                email: allUser?.data?.user?.email,
+            };
+            setSend(true);
+            setResResend(await resendCodeConfirmationUser(custFormData));
+            setSend(false);
+        }
+    };
 
     //! 2) --------- useEffect que nos sirve cuando cambia la res a lanzar el comprobador de errores
+    // gestion del check code del usuario
     useEffect(() => {
+        console.log("Res ✅", res);
         useCheckCodeError(
             res,
             setRes,
@@ -69,14 +92,43 @@ export const CheckCode = () => {
             setOkDeleteUser,
             login,
             setUserNotFound
-        )
+        );
     }, [res]);
 
+    // gestion del reenvio de codigo de confirmacion
     useEffect(() => {
-
+        console.log("Resend 📫", resResend);
+        useResendCodeError(
+            resResend,
+            setResResend,
+            setUserNotFound
+        );
     }, [resResend]);
 
     //! 3) --------- condicionales que evaluan si estan a true los estados de navegacion
+    if(okCheck){
+        // aqui tenemos que hacer el autologin para cuando el usuario viene del register
+        /** para cuando el usuario viene del login lo gestionamos con el useCheckCodeError
+         * ---> modificamos el localStorage y el user del contexto */
+        if(!localStorage.getItem('user')){
+            // viene del register
+            useAutoLogin(allUser, login);
+        } else {
+            // viene del login
+            return <Navigate to="/dashboard" />
+        }
+    }
+
+    if(okDeleteUser){
+        // si borramos el user por meter mal el codigo de confirmacion lo mandamos de nuevo al register
+        return <Navigate to="/register" />
+    }
+
+    if(userNotFound){
+        // lo mando a login porque aparece un 404 de user not found porque me ha recargado la pagina
+        // con lo cual no tengo acceso al email y no puedo reconocer el usuario en el backend
+        return <Navigate to="/login" />
+    }
 
     return (
     <>

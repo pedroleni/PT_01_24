@@ -67,7 +67,6 @@ export const Register = () => {
         return <Navigate to='/verifyCode'/>
     }
 
-
     return (
     <>
         <div className="form-wrap">

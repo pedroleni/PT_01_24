@@ -3,3 +3,7 @@ export * from './useLoginError';
 export * from './useAutoLogin';
 export * from './useCheckCodeError';
 export * from './useResendCodeError';
+export * from './useForgotPasswordError';
+export * from './useChangePasswordError';
+export * from './useDeleteUser';
+export * from './useUpdateError';

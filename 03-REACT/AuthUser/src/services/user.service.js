@@ -63,7 +63,7 @@ export const deleteUserService = async () => {
     .catch((error) => error);
 };
 
-//! ---------------------------- CAMBIO CONTRASEÑA CUANDO ESTAS LOGAGO----
+//! ---------------------------- CAMBIO CONTRASEÑA CUANDO ESTAS LOGUEADO ----
 export const changePasswordUserToken = async (formData) => {
   return APIuser.patch("/users/changepassword", formData, {
     headers: {
