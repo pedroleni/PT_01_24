@@ -1,8 +1,9 @@
+import './FigureUser.css'
 export const FigureUser = (user) => {
     return (
         <figure>
-            <img src={user.user.image} alt={'user image'} />
-            <h4>Email: {user.user.email}</h4>
+            <img className="imageUser" src={user.user.image} alt={'user image'} />
+            <h4 className="emailUser">Email: {user.user.email}</h4>
         </figure>
     )
 }
