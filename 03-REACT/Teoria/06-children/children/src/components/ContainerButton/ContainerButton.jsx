@@ -5,8 +5,9 @@ export const ContainerButton = ({ children }) => {
      * tiene dos children, me devuelve un array con dos objetos ---> el button y el parrafo
      * que tiene como hijos
      */
-    console.log(children);
     return (
-        <div className="card">{children}</div>
+        <div className="card">
+            {children}
+        </div>
     )
 }
